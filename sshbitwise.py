@@ -22,7 +22,7 @@ def main():
 					"sni" : "",
 	  } 
 
-	#os.system('cls')
+	os.system('cls')
 	print('---------------------------------------------------------------')
 	jsondata["mode"] = confParse()['mode']['connection_mode']	
 	jsondata["payload"] = confParse()['config']['payload'] 
