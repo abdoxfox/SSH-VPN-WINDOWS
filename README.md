@@ -18,4 +18,12 @@ Official link : https://www.proxifier.com/download/#win-tab
 can also looking for cracked version
 
 
+# configuration 
+
+all required configuration should be filled in file 
+settings.ini 
+(Payload , ssh account , proxy , sni)
+
+Extra info in settings.ini file 
+
 
