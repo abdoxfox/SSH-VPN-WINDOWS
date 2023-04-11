@@ -36,7 +36,7 @@ def main():
 		print(f'{O}SNI : {GR} {jsondata["sni"]}')
 
 	if jsondata["mode"] in ['1','3']:
-		print(f'{O}sending payload :\n{GR} {jsondata["payload"]}\n')
+		print(f'{O}payload :\n{GR} {jsondata["payload"]}\n')
 		#if len(jsondata["proxy"].split(':')[1]) > 1:
 		print(f'{O}proxy :{GR} ', jsondata["proxy"] if len(jsondata["proxy"].split(':')[1]) > 1 else None,end='\n\n')
 
