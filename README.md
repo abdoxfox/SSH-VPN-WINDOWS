@@ -3,9 +3,11 @@
 
 # requirements :
 
--python3.8 &>
+- python3.8 &>
 
--ssh bitwise program
+- ssh bitwise program
 
 - proxifier program
+
+
 
