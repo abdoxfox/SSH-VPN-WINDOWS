@@ -2,6 +2,7 @@ import time
 import socket 
 import configparser
 import re
+import sys
 
 
 bg=''
@@ -43,7 +44,7 @@ class injector():
 
 
 	def payloadformating(self,payload,host,port):
-		#(f'{O}[TCP] Sending payload :\n{payload}{GR}')
+		
 		payload = payload.replace('[crlf]','\r\n')
 		payload = payload.replace('[crlf*2]','\r\n\r\n')
 		payload = payload.replace('[cr]','\r')
@@ -64,69 +65,25 @@ class injector():
 		payload = payload.replace('[host]',host)
 		payload = payload.replace('[port]',port)
 		payload = payload.replace('[auth]','')
+		payload = payload.replace('[split]' ,'=1.0=')
+		payload = payload.replace('[delay_split]'  ,'=1.5=')
+		payload = payload.replace('[instant_split]','=0.0=')
 		return payload
 
-	def connection(self,client, s,host,port):
+	def connection(self,client, server,host,port):
 	        if int(self.conn_mode(self.conf())) == 0:
-	        	payload = b'SSH-2.0-abdoxfox'
+	        	return self.get_resp(server=server,client=client)
 	        			       
 	        else:
-	        	payload = self.payloadformating(self.getpayload(self.conf()),host,port)
-	        
-	        if '[split]' in payload or '[instant_split]' in payload or '[delay_split]' in payload:
-	          payload = payload.replace('[split]'        ,'||1.0||')
-	          payload = payload.replace('[delay_split]'  ,'||1.5||')
-	          payload = payload.replace('[instant_split]','||0.0||')
-	          
-	          req = payload.split('||')
-	          
-	          for payl in req:
-	              if payl in ['1.0','1.5','0.0'] :
-	                delay = payl
-	                time.sleep(float(delay))
+	        	payloads = self.payloadformating(self.getpayload(self.conf()),host,port).split('=')
+	        	
+	        for payload in payloads:
+	              if payload in ['1.0','1.5','0.0'] :
+	                time.sleep(float(payload))
 	              else:
-	                s.send(payl.encode())
-	        
-	        elif '[repeat_split]' in payload  :
-	          payload = payload.replace('[repeat_split]','||1||')
-	          payload = payload.replace('[x-split]','||1||')
-	          req = payload.split('||')
-	          payl = []
-	          for element in req:
-	            if element and element == '1' :pass
-	            else:payl.append(element)
-	          rpspli = payl[0]+payl[0]
-	          s.send(rpspli.encode())
-	          s.send(payl[1].encode())
-
-	        elif '[reverse_split]' in payload or '[x-split]' in payload:
-	          payload = payload.replace('[reverse_split]','||2|')
-	          payload = payload.replace('[x-split]','||2|')
-	          req = payload.split('||')
-	          payl = []
-	          for element in req:
-	            if element and element == '2':pass
-	            else:payl.append(element)
-	          rvsplit = payl[0]+payl[1]
-	          s.send(rvsplit.encode())
-	          s.send(payl[1].encode())
-
-	        elif '[split-x]' in payload:
-	          payload = payload.replace('[split-x]','||3||')
-	          req = payload.split('||')
-	          xsplit = []
-	          for element in req:
-	            if element and element == '3':pass
-	            else:xsplit.append(element)
-	          alpay = xsplit[0]+xsplit[1]
-	          s.send(alpay.encode())
-	          
-	          time.sleep(1.0)
-	          s.send(xsplit[1].encode())
-	        else:
-	          print(payload)
-	          s.send(payload.encode())
-	        self.get_resp(s,client)
+	                self.logs(f'{O} sending payload : {payload.encode()}{GR}')
+	                server.send(payload.encode())
+	        return self.get_resp(server=server,client=client)
 
 	def get_resp(self,server,client) :
 		packet = server.recv(1024)
