@@ -26,4 +26,10 @@ settings.ini
 
 Extra info in settings.ini file 
 
+* After settings and requirements is ready run vpn using cmd
+python3 Main.py
+
+
+And have fun & enjoy
+
 
