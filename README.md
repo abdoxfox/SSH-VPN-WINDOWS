@@ -6,7 +6,7 @@
 
 - python3.8 &>
 
-- cetifi (python library)
+- certifi (python library)
 
 - bitwise ssh client program
 Link : https://www.bitvise.com/ssh-client-download
