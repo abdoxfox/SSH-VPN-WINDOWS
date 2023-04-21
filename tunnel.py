@@ -1,10 +1,10 @@
+import ssl,os,certifi,sys
 import socket 
 import time
 import select
 import threading
 from inject import injector
 import configparser
-import ssl,os,certifi,sys
 
 bg=''
 G = bg+'\033[32m'
@@ -63,55 +63,54 @@ class Tun(injector):
 		client.close()
 		sockt.close()
 		
-	def destination(self,client, address):
+	def destination(self,sock_server, address):
 	    try:
-	        request = client.recv(9124).decode()
+	        request = sock_server.recv(9124).decode()
 	        host = self.gethost(self.conf())
 	        port = request.split(':')[-1].split()[0]
 	        try:
-	            proxip=self.proxy(self.conf())[0] 
-	            proxport=self.proxy(self.conf())[1]
+	            proxy_ip=self.proxy(self.conf())[0] 
+	            proxy_port=self.proxy(self.conf())[1]
 	        except ValueError:
-	        	proxip = host
-	        	proxport = port
-	        s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	        s.connect((proxip,int(proxport)))
-	        self.logs(f'{O}[TCP] {G}connected to {proxip}:{proxport}{GR}')
+	        	proxy_ip = host
+	        	proxy_port = port
+	        sock_client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	        sock_client.connect((proxy_ip,int(proxy_port)))
+	        self.logs(f'{O}[TCP] {G}connected to {proxy_ip}:{proxy_port}{GR}')
 
 	        if int(self.conn_mode(self.conf())) == 2:
 	        	SNI_HOST = self.extraxt_sni(self.conf())
 	        	context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-	        	s = context.wrap_socket(s,server_hostname=str(SNI_HOST))
+	        	sock_client = context.wrap_socket(sock_client,server_hostname=str(SNI_HOST))
 	        	context.verify_mode  = ssl.CERT_REQUIRED
 	        	context.load_verify_locations(
 	        	cafile=os.path.relpath(certifi.where()),
 	        	capath=None,cadata=None)
 	        	self.logs(f'{O}[TCP] Handshaked successfully to {SNI_HOST}{GR}')
 	        	try:
-	        		self.logs(f'''{O}[TCP] Protocol :{G}{s.version()}\n{O}Ciphersuite :{G} {s.cipher()[0]}\n{O}Peerprincipal:{G} C={s.getpeercert()["subject"][1][0][1]}, ST={s.getpeercert()["subject"][1][0][1]} , L={s.getpeercert()["subject"][2][0][1]} , O={s.getpeercert()["subject"][3][0][1]} , CN={s.getpeercert()["subject"][4][0][1]}  {GR}''')
+	        		self.logs(f'''{O}[TCP] Protocol :{G}{sock_client.version()}\n{O}Ciphersuite :{G} {sock_client.cipher()[0]}\n{O}Peerprincipal:{G} C={sock_client.getpeercert()["subject"][1][0][1]}, ST={sock_client.getpeercert()["subject"][1][0][1]} , L={sock_client.getpeercert()["subject"][2][0][1]} , O={sock_client.getpeercert()["subject"][3][0][1]} , CN={sock_client.getpeercert()["subject"][4][0][1]}  {GR}''')
 	        	except:
-	        		self.logs(f'''{O}[TCP] Protocol :{G}{s.version()}\n{O}Ciphersuite :{G} {s.cipher()[0]}\n{O}Peerprincipal:{G} {s.getpeercert()["subject"]}''')
-	        	client.send(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+	        		self.logs(f'''{O}[TCP] Protocol :{G}{sock_client.version()}\n{O}Ciphersuite :{G} {sock_client.cipher()[0]}\n{O}Peerprincipal:{G} {sock_client.getpeercert()["subject"]}''')
+	        	sock_server.send(b"HTTP/1.1 200 Connection Established\r\n\r\n")
 
 	        elif int(self.conn_mode(self.conf())) == 3:
 	        	SNI_HOST = self.extraxt_sni(self.conf())
 	        	context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-	        	s = context.wrap_socket(s,server_hostname=str(SNI_HOST))
+	        	sock_client = context.wrap_socket(sock_client,server_hostname=str(SNI_HOST))
 	        	context.verify_mode  = ssl.CERT_REQUIRED
 	        	context.load_verify_locations(
 	        	cafile=os.path.relpath(certifi.where()),
 	        	capath=None,cadata=None)
 	        	self.logs(f'Handshaked successfully to {SNI_HOST}')
 	        	try:
-	        		self.logs(f'''{O}[TCP] Protocol :{G}{s.version()}\n{O}Ciphersuite :{G} {s.cipher()[0]}\n{O}Peerprincipal:{G} C={s.getpeercert()["subject"][1][0][1]}, ST={s.getpeercert()["subject"][1][0][1]} , L={s.getpeercert()["subject"][2][0][1]} , O={s.getpeercert()["subject"][3][0][1]} , CN={s.getpeercert()["subject"][4][0][1]}  {GR}''')
+	        		self.logs(f'''{O}[TCP] Protocol :{G}{sock_client.version()}\n{O}Ciphersuite :{G} {sock_client.cipher()[0]}\n{O}Peerprincipal:{G} C={sock_client.getpeercert()["subject"][1][0][1]}, ST={sock_client.getpeercert()["subject"][1][0][1]} , L={sock_client.getpeercert()["subject"][2][0][1]} , O={sock_client.getpeercert()["subject"][3][0][1]} , CN={sock_client.getpeercert()["subject"][4][0][1]}  {GR}''')
 	        	except:
-	        		self.logs(f'''{O}[TCP] Protocol :{G}{s.version()}\n{O}Ciphersuite :{G} {s.cipher()[0]}\n{O}Peerprincipal:{G} {s.getpeercert()["subject"]}''')
-	        	injector.connection(self,client, s,str(host),str(port))
+	        		self.logs(f'''{O}[TCP] Protocol :{G}{sock_client.version()}\n{O}Ciphersuite :{G} {sock_client.cipher()[0]}\n{O}Peerprincipal:{G} {sock_client.getpeercert()["subject"]}''')
+	        	injector.connection(self,sock_server,sock_client,kwargs={'SSH':f'{host}:{port}','PROXY':f'{proxy_ip}:{proxy_port}'})
 
 	        else:
-	        	injector.connection(self,client, s,str(host),str(port))
-	       
-	        self.tunneling(client,s)
+	        	injector.connection(self,sock_server,sock_client,kwargs={'SSH':f'{host}:{port}','PROXY':f'{proxy_ip}:{proxy_port}'})
+	        self.tunneling(sock_server,sock_client)
 	    except Exception as e:
 	    	self.logs(f'{e}')
 	def create_connection(self):
